@@ -1,4 +1,4 @@
-package com.senai.back.rental.Repository;
+package com.senai.back.rental.Repositories;
 
 import com.senai.back.rental.Models.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,7 +1,7 @@
 package com.senai.back.rental.Services;
 
 import com.senai.back.rental.Models.Equipamento;
-import com.senai.back.rental.Repository.EquipamentoRepository;
+import com.senai.back.rental.Repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

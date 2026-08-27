@@ -1,7 +1,7 @@
 package com.senai.back.rental.Services;
 
 import com.senai.back.rental.Models.Usuario;
-import com.senai.back.rental.Repository.UsuarioRepository;
+import com.senai.back.rental.Repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,4 +34,5 @@ public class UsuarioService {
         }
         return false;
     }
+
 }

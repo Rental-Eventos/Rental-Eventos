@@ -1,10 +1,11 @@
-package com.senai.back.rental.Services;
+package com.senai.back.rental.services;
 
-import com.senai.back.rental.Models.Equipamento;
-import com.senai.back.rental.Models.Movimentacao;
-import com.senai.back.rental.Models.Usuario;
-import com.senai.back.rental.Repositories.EquipamentoRepository;
-import com.senai.back.rental.Repositories.MovimentacaoRepository;
+import com.senai.back.rental.models.Equipamento;
+import com.senai.back.rental.models.Movimentacao;
+import com.senai.back.rental.models.Usuario;
+import com.senai.back.rental.repositories.EquipamentoRepository;
+import com.senai.back.rental.repositories.MovimentacaoRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

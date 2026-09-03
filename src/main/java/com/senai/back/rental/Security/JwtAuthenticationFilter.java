@@ -1,4 +1,4 @@
-package com.senai.back.rental.Security;
+package com.senai.back.rental.security;
 
 import java.io.IOException;
 
@@ -11,7 +11,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.senai.back.rental.Services.JwtService;
+import com.senai.back.rental.services.JwtService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

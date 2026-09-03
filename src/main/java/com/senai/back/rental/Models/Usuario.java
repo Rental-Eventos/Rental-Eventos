@@ -1,4 +1,4 @@
-package com.senai.back.rental.Models;
+package com.senai.back.rental.models;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

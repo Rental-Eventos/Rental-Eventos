@@ -1,4 +1,4 @@
-package com.senai.back.rental.Controllers;
+package com.senai.back.rental.controllers;
 
 import java.util.Map;
 
@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.senai.back.rental.Models.Usuario;
-import com.senai.back.rental.Repositories.UsuarioRepository;
-import com.senai.back.rental.Services.JwtService;
+import com.senai.back.rental.models.Usuario;
+import com.senai.back.rental.repositories.UsuarioRepository;
+import com.senai.back.rental.services.JwtService;
 
 @RestController
 @RequestMapping("/api/auth")

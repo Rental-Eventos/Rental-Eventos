@@ -1,8 +1,9 @@
-package com.senai.back.rental.Repositories;
+package com.senai.back.rental.repositories;
 
-import com.senai.back.rental.Models.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import com.senai.back.rental.models.Usuario;
 
 import java.util.Optional;
 

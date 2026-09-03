@@ -1,19 +1,24 @@
-package com.senai.back.rental.Controllers;
-
-import com.senai.back.rental.Models.Equipamento;
-import com.senai.back.rental.Models.Movimentacao;
-import com.senai.back.rental.Models.Usuario;
-import com.senai.back.rental.Services.EquipamentoService;
-import com.senai.back.rental.Services.MovimentacaoService;
-import com.senai.back.rental.Services.UsuarioService;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+package com.senai.back.rental.controllers;
 
 import java.time.LocalDate;
 import java.util.List;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.senai.back.rental.models.Equipamento;
+import com.senai.back.rental.models.Movimentacao;
+import com.senai.back.rental.models.Usuario;
+import com.senai.back.rental.services.EquipamentoService;
+import com.senai.back.rental.services.MovimentacaoService;
+import com.senai.back.rental.services.UsuarioService;
 
 @Controller
 @RequestMapping("/movimentacoes")

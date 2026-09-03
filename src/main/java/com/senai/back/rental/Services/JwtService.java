@@ -1,4 +1,4 @@
-package com.senai.back.rental.Services;
+package com.senai.back.rental.services;
 
 import java.util.Date;
 import java.util.HashMap;

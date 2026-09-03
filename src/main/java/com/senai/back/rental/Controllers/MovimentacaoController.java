@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 import com.senai.back.rental.models.Equipamento;
 import com.senai.back.rental.models.Movimentacao;
 import com.senai.back.rental.models.Usuario;

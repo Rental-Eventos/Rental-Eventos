@@ -1,184 +1,91 @@
 package com.senai.back.rental.controllers;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.senai.back.rental.models.Usuario;
-import com.senai.back.rental.services.UsuarioService;
+import com.senai.back.rental.repositories.UsuarioRepository;
 
-@Controller
-@RequestMapping("/usuarios")
+@RestController
+@RequestMapping("/api/usuarios")
 public class UsuarioController {
 
     @Autowired
-    private UsuarioService usuarioService;
+    private UsuarioRepository usuarioRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // Listar todos os usuários
+    // 1. Listar todos os usuários (GET /api/usuarios)
     @GetMapping
-    public String listar(Model model) {
-        List<Usuario> usuarios = listarUsuarios();
-        model.addAttribute("usuarios", usuarios);
-        return "usuarios/lista";
+    public ResponseEntity<List<Usuario>> listar() {
+        List<Usuario> usuarios = usuarioRepository.findAll();
+        return ResponseEntity.ok(usuarios);
     }
 
-    private List<Usuario> listarUsuarios() {
-        List<String> metodosPossiveis = List.of("findAll", "listarTodos", "buscarTodos", "getAll", "listar");
-
-        for (String nomeMetodo : metodosPossiveis) {
-            try {
-                Method metodo = usuarioService.getClass().getMethod(nomeMetodo);
-                Object resultado = metodo.invoke(usuarioService);
-                if (resultado instanceof List<?> lista) {
-                    @SuppressWarnings("unchecked")
-                    List<Usuario> usuarios = (List<Usuario>) lista;
-                    return usuarios;
-                }
-            } catch (ReflectiveOperationException ignored) {
-                // Ignora e tenta o próximo nome de método compatível
-            }
-        }
-
-        return new ArrayList<>();
+    // 2. Buscar por ID (GET /api/usuarios/{id})
+    @GetMapping("/{id}")
+    public ResponseEntity<Usuario> buscarPorId(@PathVariable Long id) {
+        return usuarioRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    private Optional<Usuario> buscarUsuarioPorId(Long id) {
-        List<String> metodosPossiveis = List.of("findById", "buscarPorId", "getById", "obterPorId");
-
-        for (String nomeMetodo : metodosPossiveis) {
-            try {
-                for (Class<?> tipoParametro : List.of(Long.class, long.class)) {
-                    try {
-                        Method metodo = usuarioService.getClass().getMethod(nomeMetodo, tipoParametro);
-                        Object resultado = metodo.invoke(usuarioService, id);
-                        if (resultado instanceof Optional<?> optional) {
-                            @SuppressWarnings("unchecked")
-                            Optional<Usuario> usuario = (Optional<Usuario>) optional;
-                            return usuario;
-                        }
-                        if (resultado instanceof Usuario usuario) {
-                            return Optional.of(usuario);
-                        }
-                    } catch (NoSuchMethodException ignored) {
-                        // Tenta o próximo tipo de parâmetro.
-                    }
-                }
-            } catch (ReflectiveOperationException ignored) {
-                // Ignora e tenta o próximo nome de método compatível
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    private void excluirUsuario(Long id) {
-        List<String> metodosPossiveis = List.of("excluir", "delete", "deletar", "remover", "apagar", "deleteById", "removerPorId");
-
-        for (String nomeMetodo : metodosPossiveis) {
-            try {
-                for (Class<?> tipoParametro : List.of(Long.class, long.class)) {
-                    try {
-                        Method metodo = usuarioService.getClass().getMethod(nomeMetodo, tipoParametro);
-                        metodo.invoke(usuarioService, id);
-                        return;
-                    } catch (NoSuchMethodException ignored) {
-                        // Tenta o próximo tipo de parâmetro.
-                    }
-                }
-            } catch (ReflectiveOperationException ignored) {
-                // Ignora e tenta o próximo nome de método compatível
-            }
-        }
-
-        throw new IllegalStateException("Nenhum método de exclusão compatível encontrado em UsuarioService");
-    }
-
-    // Formulário para novo usuário
-    @GetMapping("/novo")
-    public String novo(Model model) {
-        model.addAttribute("usuario", new Usuario());
-        return "usuarios/form";
-    }
-
-    // Salvar novo usuário
+    // 3. Cadastrar novo usuário (POST /api/usuarios)
     @PostMapping
-    public String salvar(@ModelAttribute("usuario") Usuario usuario, RedirectAttributes redirect) {
-        try {
-            usuarioService.salvar(usuario);
-            redirect.addFlashAttribute("mensagem", "Usuário cadastrado com sucesso!");
-        } catch (Exception e) {
-            redirect.addFlashAttribute("erro", "Erro ao cadastrar usuário: " + e.getMessage());
+    public ResponseEntity<Usuario> criar(@RequestBody Usuario usuario) {
+        // Criptografa a senha antes de salvar no banco
+        if (usuario.getSenha() != null && !usuario.getSenha().isBlank()) {
+            usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
         }
-        return "redirect:/usuarios";
+
+        Usuario novoUsuario = usuarioRepository.save(usuario);
+        return ResponseEntity.status(HttpStatus.CREATED).body(novoUsuario);
     }
 
-    // Formulário para editar usuário existente
-    @GetMapping("/{id}/editar")
-    public String editar(@PathVariable Long id, Model model) {
-        Usuario usuario = buscarUsuarioPorId(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-        usuario.setSenha(""); // limpa a senha para não exibir no formulário
-        model.addAttribute("usuario", usuario);
-        return "usuarios/form";
-    }
+    // 4. Atualizar usuário (PUT /api/usuarios/{id})
+    @PutMapping("/{id}")
+    public ResponseEntity<Usuario> atualizar(@PathVariable Long id, @RequestBody Usuario usuarioForm) {
+        return usuarioRepository.findById(id).map(usuario -> {
+            usuario.setNome(usuarioForm.getNome());
+            usuario.setCpf(usuarioForm.getCpf());
+            usuario.setEmail(usuarioForm.getEmail());
+            usuario.setEstado(usuarioForm.getEstado());
+            usuario.setCidade(usuarioForm.getCidade());
+            usuario.setLogradouro(usuarioForm.getLogradouro());
+            usuario.setNumero(usuarioForm.getNumero());
+            usuario.setCep(usuarioForm.getCep());
+            usuario.setTelefone(usuarioForm.getTelefone());
 
-    // Atualizar usuário
-    @PostMapping("/{id}")
-    public String atualizar(@PathVariable Long id,
-            @ModelAttribute("usuario") Usuario usuarioForm,
-            RedirectAttributes redirect) {
-        try {
-            Usuario usuarioExistente = buscarUsuarioPorId(id)
-                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-
-            // Atualiza os campos (exceto senha se estiver em branco)
-            usuarioExistente.setNome(usuarioForm.getNome());
-            usuarioExistente.setCpf(usuarioForm.getCpf());
-            usuarioExistente.setEmail(usuarioForm.getEmail());
-            usuarioExistente.setEstado(usuarioForm.getEstado());
-            usuarioExistente.setCidade(usuarioForm.getCidade());
-            usuarioExistente.setLogradouro(usuarioForm.getLogradouro());
-            usuarioExistente.setNumero(usuarioForm.getNumero());
-            usuarioExistente.setCep(usuarioForm.getCep());
-            usuarioExistente.setTelefone(usuarioForm.getTelefone());
-
-            // Se a senha foi fornecida, codifica e atualiza
+            // Se enviou uma nova senha, criptografa
             if (usuarioForm.getSenha() != null && !usuarioForm.getSenha().isBlank()) {
-                usuarioExistente.setSenha(passwordEncoder.encode(usuarioForm.getSenha()));
+                usuario.setSenha(passwordEncoder.encode(usuarioForm.getSenha()));
             }
 
-            usuarioService.salvar(usuarioExistente); // salvar não deve re-encodar senha novamente (ver observação)
-            redirect.addFlashAttribute("mensagem", "Usuário atualizado com sucesso!");
-        } catch (Exception e) {
-            redirect.addFlashAttribute("erro", "Erro ao atualizar usuário: " + e.getMessage());
-        }
-        return "redirect:/usuarios";
+            Usuario usuarioAtualizado = usuarioRepository.save(usuario);
+            return ResponseEntity.ok(usuarioAtualizado);
+        }).orElse(ResponseEntity.notFound().build());
     }
 
-    // Excluir usuário
-    @GetMapping("/{id}/excluir")
-    public String excluir(@PathVariable Long id, RedirectAttributes redirect) {
-        try {
-            excluirUsuario(id);
-            redirect.addFlashAttribute("mensagem", "Usuário excluído.");
-        } catch (Exception e) {
-            redirect.addFlashAttribute("erro", "Não foi possível excluir: " + e.getMessage());
+    // 5. Deletar usuário (DELETE /api/usuarios/{id})
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        if (!usuarioRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
         }
-        return "redirect:/usuarios";
+        usuarioRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

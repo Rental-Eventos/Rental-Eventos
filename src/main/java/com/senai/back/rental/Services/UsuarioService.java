@@ -19,11 +19,12 @@ public class UsuarioService {
     private PasswordEncoder passwordEncoder;
 
     public Usuario salvar(Usuario usuario) {
-        // Codifica a senha antes de salvar
-        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
+        // Criptografa a senha contida no próprio objeto usuario
+        if (usuario.getSenha() != null && !usuario.getSenha().isBlank()) {
+            usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
+        }
         return usuarioRepository.save(usuario);
     }
-
     public Optional<Usuario> buscarPorEmail(String email) {
         return usuarioRepository.findByEmail(email);
     }

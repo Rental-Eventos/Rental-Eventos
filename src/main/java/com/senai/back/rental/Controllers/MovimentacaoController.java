@@ -2,78 +2,78 @@ package com.senai.back.rental.controllers;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import com.senai.back.rental.models.Equipamento;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.senai.back.rental.models.Movimentacao;
 import com.senai.back.rental.models.Usuario;
 import com.senai.back.rental.services.EquipamentoService;
 import com.senai.back.rental.services.MovimentacaoService;
 import com.senai.back.rental.services.UsuarioService;
 
-@Controller
-@RequestMapping("/movimentacoes")
+@RestController
+@RequestMapping("/api/movimentacoes")
 public class MovimentacaoController {
 
-    private EquipamentoService equipamentoService;
-    private MovimentacaoService movimentacaoService;
-    private UsuarioService usuarioService;
+    private final EquipamentoService equipamentoService;
+    private final MovimentacaoService movimentacaoService;
+    private final UsuarioService usuarioService;
 
-    public MovimentacaoController(EquipamentoService equipamentoService, MovimentacaoService movimentacaoService,
-            UsuarioService usuarioService) {
+    public MovimentacaoController(EquipamentoService equipamentoService,
+                                  MovimentacaoService movimentacaoService,
+                                  UsuarioService usuarioService) {
         this.equipamentoService = equipamentoService;
         this.movimentacaoService = movimentacaoService;
         this.usuarioService = usuarioService;
     }
 
-    @GetMapping
-    public String listarParaMovimentar(Model model) {
-        List<Equipamento> equipamentos = equipamentoService.listarOrdenadoAlfabeticamente();
-        model.addAttribute("equipamentos", equipamentos);
-        model.addAttribute("hoje", LocalDate.now());
-        return "movimentacoes/gestao";
-    }
+    // Estrutura para receber o corpo da requisição JSON no POST
+    public record MovimentacaoRequest(Long equipamentoId, String tipo, Integer quantidade, String data) {}
 
+    // 1. Registrar Movimentação (POST /api/movimentacoes)
     @PostMapping
-    public String registrar(@RequestParam("equipamentoId") Long equipamentoId,
-            @RequestParam("tipo") String tipo,
-            @RequestParam("quantidade") Integer quantidade,
-            @RequestParam("data") String data,
-            Authentication authentication,
-            RedirectAttributes redirect) {
+    public ResponseEntity<?> registrar(@RequestBody MovimentacaoRequest request, Authentication authentication) {
         try {
+            // O Spring Security injeta o 'Authentication' automaticamente com base no Bearer Token
             Usuario usuario = usuarioService.buscarPorEmail(authentication.getName())
                     .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-            LocalDate dataMov = LocalDate.parse(data);
+            LocalDate dataMov = LocalDate.parse(request.data());
             StringBuilder alerta = new StringBuilder();
-            movimentacaoService.registrarMovimentacao(equipamentoId, tipo, quantidade, dataMov, usuario, alerta);
+
+            movimentacaoService.registrarMovimentacao(
+                    request.equipamentoId(),
+                    request.tipo(),
+                    request.quantidade(),
+                    dataMov,
+                    usuario,
+                    alerta
+            );
 
             if (alerta.length() > 0) {
-                redirect.addFlashAttribute("alerta", alerta.toString());
-            } else {
-                redirect.addFlashAttribute("mensagem", "Movimentação registrada com sucesso!");
+                return ResponseEntity.ok(Map.of("alerta", alerta.toString()));
             }
+
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(Map.of("mensagem", "Movimentação registrada com sucesso!"));
         } catch (Exception e) {
-            redirect.addFlashAttribute("erro", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
         }
-        return "redirect:/movimentacoes";
     }
 
+    // 2. Histórico por Equipamento (GET /api/movimentacoes/historico/{equipamentoId})
     @GetMapping("/historico/{equipamentoId}")
-    public String historico(@PathVariable Long equipamentoId, Model model) {
-        Equipamento equipamento = equipamentoService.buscarPorId(equipamentoId);
+    public ResponseEntity<List<Movimentacao>> historico(@PathVariable Long equipamentoId) {
         List<Movimentacao> movimentacoes = movimentacaoService.historicoPorEquipamento(equipamentoId);
-        model.addAttribute("equipamento", equipamento);
-        model.addAttribute("movimentacoes", movimentacoes);
-        return "movimentacoes/historico";
+        return ResponseEntity.ok(movimentacoes);
     }
 }

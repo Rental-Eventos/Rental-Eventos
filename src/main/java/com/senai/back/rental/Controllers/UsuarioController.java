@@ -56,28 +56,29 @@ public class UsuarioController {
     }
 
     // 4. Atualizar usuário (PUT /api/usuarios/{id})
-    @PutMapping("/{id}")
-    public ResponseEntity<Usuario> atualizar(@PathVariable Long id, @RequestBody Usuario usuarioForm) {
-        return usuarioRepository.findById(id).map(usuario -> {
-            usuario.setNome(usuarioForm.getNome());
-            usuario.setCpf(usuarioForm.getCpf());
-            usuario.setEmail(usuarioForm.getEmail());
-            usuario.setEstado(usuarioForm.getEstado());
-            usuario.setCidade(usuarioForm.getCidade());
-            usuario.setLogradouro(usuarioForm.getLogradouro());
-            usuario.setNumero(usuarioForm.getNumero());
-            usuario.setCep(usuarioForm.getCep());
-            usuario.setTelefone(usuarioForm.getTelefone());
+    // 4. Atualizar usuário (PUT /api/usuarios/{id})
+@PutMapping("/{id}")
+public ResponseEntity<Usuario> atualizar(@PathVariable Long id, @RequestBody Usuario usuarioForm) {
+    return usuarioRepository.findById(id).map(usuario -> {
+        if (usuarioForm.getNome() != null) usuario.setNome(usuarioForm.getNome());
+        if (usuarioForm.getCpf() != null) usuario.setCpf(usuarioForm.getCpf());
+        if (usuarioForm.getEmail() != null) usuario.setEmail(usuarioForm.getEmail());
+        if (usuarioForm.getEstado() != null) usuario.setEstado(usuarioForm.getEstado());
+        if (usuarioForm.getCidade() != null) usuario.setCidade(usuarioForm.getCidade());
+        if (usuarioForm.getLogradouro() != null) usuario.setLogradouro(usuarioForm.getLogradouro());
+        if (usuarioForm.getNumero() != null) usuario.setNumero(usuarioForm.getNumero());
+        if (usuarioForm.getCep() != null) usuario.setCep(usuarioForm.getCep());
+        if (usuarioForm.getTelefone() != null) usuario.setTelefone(usuarioForm.getTelefone());
 
-            // Se enviou uma nova senha, criptografa
-            if (usuarioForm.getSenha() != null && !usuarioForm.getSenha().isBlank()) {
-                usuario.setSenha(passwordEncoder.encode(usuarioForm.getSenha()));
-            }
+        // Se enviou uma nova senha válida, criptografa
+        if (usuarioForm.getSenha() != null && !usuarioForm.getSenha().isBlank()) {
+            usuario.setSenha(passwordEncoder.encode(usuarioForm.getSenha()));
+        }
 
-            Usuario usuarioAtualizado = usuarioRepository.save(usuario);
-            return ResponseEntity.ok(usuarioAtualizado);
-        }).orElse(ResponseEntity.notFound().build());
-    }
+        Usuario usuarioAtualizado = usuarioRepository.save(usuario);
+        return ResponseEntity.ok(usuarioAtualizado);
+    }).orElse(ResponseEntity.notFound().build());
+}
 
     // 5. Deletar usuário (DELETE /api/usuarios/{id})
     @DeleteMapping("/{id}")

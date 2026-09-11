@@ -43,16 +43,19 @@ public class SecurityConfig {
     }
 
     @Bean
-        public SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            DaoAuthenticationProvider authenticationProvider) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, DaoAuthenticationProvider authenticationProvider) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/login", "/css/**", "/js/**", "/images/**").permitAll()
+                // Libera autenticação
+                .requestMatchers("/api/auth/**").permitAll()
+                
+                // Libera as rotas para qualquer usuário autenticado com token JWT válido
+                .requestMatchers("/api/movimentacoes/**").authenticated()
+                .requestMatchers("/api/equipamentos/**").authenticated()
+                .requestMatchers("/api/usuarios/**").authenticated()
+                
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider)
